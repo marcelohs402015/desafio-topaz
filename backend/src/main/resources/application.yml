@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: api-topaz
+  profiles:
+    default: h2
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+server:
+  port: 8080
+
+app:
+  base-url: http://localhost:8080
+  security:
+    username: admin
+    password: admin
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
