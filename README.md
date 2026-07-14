@@ -320,6 +320,6 @@ Antes do push, rode `.\scripts\ci-local.ps1` para validar testes backend, fronte
 
 ---
 
-## Licença — {MHS} https://www.linkedin.com/in/marcelo-hernandes-da-silva-351a7159/
+## Autor — [Marcelo Hernandes da Silva](https://www.linkedin.com/in/marcelo-hernandes-da-silva-351a7159/)
 
 Projeto desenvolvido para fins de desafio técnico.
