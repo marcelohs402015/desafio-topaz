@@ -1,0 +1,14 @@
+target/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+data/
+*.log
+.env
+node_modules/
+dist/
+*.tsbuildinfo
+*.pptx
+~$*
