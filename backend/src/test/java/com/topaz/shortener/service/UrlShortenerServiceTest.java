@@ -23,6 +23,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +78,7 @@ class UrlShortenerServiceTest {
 
         assertEquals("a", response.getShortCode());
         ArgumentCaptor<UrlMapping> captor = ArgumentCaptor.forClass(UrlMapping.class);
-        verify(persistencePort, org.mockito.Mockito.atLeast(2)).save(captor.capture());
+        verify(persistencePort, atLeast(2)).save(captor.capture());
     }
 
     @Test
