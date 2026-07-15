@@ -11,7 +11,9 @@ public final class ReservedPathValidator {
             "actuator",
             "login",
             "shorten",
-            "urls"
+            "urls",
+            "v3",
+            "swagger-ui"
     ));
 
     private ReservedPathValidator() {

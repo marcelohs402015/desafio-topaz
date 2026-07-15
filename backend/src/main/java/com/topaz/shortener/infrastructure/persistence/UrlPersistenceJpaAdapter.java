@@ -50,4 +50,9 @@ public class UrlPersistenceJpaAdapter implements UrlPersistencePort {
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public int incrementAccessCount(String shortCode) {
+        return repository.incrementAccessCount(shortCode);
+    }
 }

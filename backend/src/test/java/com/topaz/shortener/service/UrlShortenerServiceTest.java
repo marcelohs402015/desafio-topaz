@@ -6,6 +6,7 @@ import com.topaz.shortener.dto.request.CreateUrlRequest;
 import com.topaz.shortener.dto.request.UpdateUrlRequest;
 import com.topaz.shortener.dto.response.UrlResponse;
 import com.topaz.shortener.exception.AliasAlreadyExistsException;
+import com.topaz.shortener.exception.InvalidAliasException;
 import com.topaz.shortener.port.UrlPersistencePort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,6 +81,15 @@ class UrlShortenerServiceTest {
     }
 
     @Test
+    void shouldThrowWhenAliasIsReserved() {
+        CreateUrlRequest request = new CreateUrlRequest();
+        request.setOriginalUrl("https://example.com");
+        request.setAlias("api");
+
+        assertThrows(InvalidAliasException.class, () -> urlShortenerService.create(request));
+    }
+
+    @Test
     void shouldThrowWhenAliasAlreadyExists() {
         CreateUrlRequest request = new CreateUrlRequest();
         request.setOriginalUrl("https://example.com");
@@ -107,8 +118,9 @@ class UrlShortenerServiceTest {
 
         when(persistencePort.findAllOrderByCreatedAtDesc()).thenReturn(Arrays.asList(first, second));
 
-        assertEquals(2, urlShortenerService.list().size());
-        assertEquals("one", urlShortenerService.list().get(0).getShortCode());
+        List<UrlResponse> urls = urlShortenerService.list();
+        assertEquals(2, urls.size());
+        assertEquals("one", urls.get(0).getShortCode());
     }
 
     @Test

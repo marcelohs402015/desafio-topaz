@@ -67,13 +67,18 @@ api-topaz/
 │       ├── domain/            # UrlMapping (entidade JPA)
 │       ├── dto/               # Request/Response da API
 │       ├── config/            # Security, CORS, OpenAPI, Actuator
-│       └── exception/         # Tratamento global de erros
+│       ├── exception/         # Tratamento global de erros
+│       └── util/              # AliasValidator, Base62, paths reservados
+│   └── src/main/webapp/WEB-INF/   # Config WildFly (só usada no deploy WAR)
+│       ├── jboss-web.xml          # Context root /api-topaz
+│       └── jboss-deployment-structure.xml
 ├── frontend/                  # SPA React + TypeScript + Tailwind + React Router
 │   └── src/
 │       ├── pages/             # LoginPage, ShortenerPage, UrlListPage
 │       ├── components/        # UrlForm, EditUrlModal, AppLayout
 │       ├── contexts/          # AuthContext (sessão + validação no backend)
-│       └── services/          # urlApi, auth
+│       ├── services/          # urlApi, auth
+│       └── utils/             # Validação de URL e alias (alinhada ao backend)
 ├── README.md
 ├── docker-compose.yml
 └── scripts/ci-local.ps1
@@ -111,7 +116,7 @@ Layout com menu lateral após login. Credenciais persistidas em `sessionStorage`
 
 O desafio sugere stack JAX-RS/CDI/JDBC no WildFly. Este projeto usa **Spring Boot empacotado como WAR** para WildFly 10, priorizando produtividade, testes e ecossistema Spring, mantendo compatibilidade estrutural com o application server exigido.
 
-**Validação em runtime:** o backend foi desenvolvido e testado com **Tomcat embedded** (`mvn spring-boot:run`) e via **Docker** (profile `docker`). O artefato WAR (`api-topaz.war`) e os arquivos de deploy (`jboss-web.xml`, `jboss-deployment-structure.xml`) estão **preparados** para WildFly 10, mas **o deploy em WildFly real não faz parte desta entrega e não será executado** — decisão consciente para priorizar o fluxo funcional, testes automatizados e avaliação via Docker/dev local.
+**Validação em runtime:** o backend foi desenvolvido e testado com **Tomcat embedded** (`mvn spring-boot:run`) e via **Docker** (profile Spring `postgres` no Compose). O artefato WAR (`api-topaz.war`), o `ServletInitializer` e os arquivos em `src/main/webapp/WEB-INF/` estão **preparados** para WildFly 10, mas **o deploy em WildFly real não faz parte desta entrega e não será executado** — decisão consciente para priorizar o fluxo funcional, testes automatizados e avaliação via Docker/dev local.
 
 ---
 
@@ -151,6 +156,17 @@ Exemplos:
 - Auto (Base62): `http://localhost:8080/a`
 
 Em produção, configure `app.base-url` com um domínio curto dedicado (ex.: `https://go.topazevolution.com` ou subdomínio definido pela Topaz).
+
+### Regras de alias e redirect
+
+| Regra | Onde |
+|-------|------|
+| Alias customizado: 3–20 caracteres (`a-z`, `0-9`, `-`) | `AliasValidator` + formulários React |
+| Aliases reservados bloqueados (`api`, `login`, `actuator`, etc.) | `ReservedPathValidator` no create/update e no redirect |
+| Código auto-gerado (Base62) pode ter 1+ caracteres | `UrlShortenerServiceImpl` |
+| `create()` e `update()` sincronizados | Requisito do desafio + evita corrida de alias na JVM |
+| Contador de acessos incrementado atomicamente no banco | `incrementAccessCount` no redirect |
+| Sessão expirada (401) faz logout automático no frontend | `ShortenerPage` e `UrlListPage` |
 
 ---
 
@@ -240,19 +256,22 @@ npm test
 
 O projeto gera um **WAR** compatível com WildFly 10, mas **não instalei nem testei o deploy em WildFly** neste desafio. A validação funcional foi feita em Tomcat embedded e Docker.
 
+A pasta `backend/src/main/webapp/` faz parte do empacotamento WAR e contém apenas configuração do **WildFly/JBoss**. No `mvn spring-boot:run` e no Docker (Tomcat embedded), esses XMLs são ignorados; no deploy real no WildFly, definem o context root e evitam conflito de logging.
+
 O que existe no código para um deploy futuro:
 
-1. Build: `mvn clean package` em `backend/` → `backend/target/api-topaz.war`
-2. Context root: `/api-topaz` (`jboss-web.xml`)
-3. Exclusões de logging JBoss (`jboss-deployment-structure.xml`)
-4. Em produção, ajustar `app.base-url` com o contexto, ex.: `https://servidor/api-topaz`
+1. `ServletInitializer` — bootstrap do Spring Boot dentro do application server
+2. Build: `mvn clean package` em `backend/` → `backend/target/api-topaz.war`
+3. Context root: `/api-topaz` (`webapp/WEB-INF/jboss-web.xml`)
+4. Exclusões de logging JBoss (`jboss-deployment-structure.xml`)
+5. Em produção, ajustar `app.base-url` com o contexto, ex.: `https://servidor/api-topaz`
 
 ### Ambientes validados
 
 | Ambiente | Como roda | Testado nesta entrega? |
 |----------|-----------|------------------------|
 | Dev local | `mvn spring-boot:run` (Tomcat embedded) | **Sim** |
-| Docker | `docker compose up` (Tomcat embedded, profile `docker`) | **Sim** |
+| Docker | `docker compose up` (Tomcat embedded, profile `postgres`) | **Sim** |
 | WildFly 10 | Deploy do WAR em `standalone/deployments/` | **Não** — fora do escopo |
 
 ---

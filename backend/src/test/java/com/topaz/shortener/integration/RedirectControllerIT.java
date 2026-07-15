@@ -49,4 +49,10 @@ class RedirectControllerIT {
         mockMvc.perform(get("/unknown-code"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void shouldReturnNotFoundForReservedPath() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isNotFound());
+    }
 }

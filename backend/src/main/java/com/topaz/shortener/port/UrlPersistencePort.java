@@ -20,4 +20,6 @@ public interface UrlPersistencePort {
     List<UrlMapping> findAllOrderByCreatedAtDesc();
 
     void deleteById(Long id);
+
+    int incrementAccessCount(String shortCode);
 }

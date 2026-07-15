@@ -1,5 +1,7 @@
 package com.topaz.shortener.util;
 
+import com.topaz.shortener.exception.InvalidAliasException;
+
 import java.util.regex.Pattern;
 
 public final class AliasValidator {
@@ -18,5 +20,15 @@ public final class AliasValidator {
 
     public static String normalize(String alias) {
         return alias.trim().toLowerCase();
+    }
+
+    public static void assertValidCustomAlias(String alias) {
+        String normalized = normalize(alias);
+        if (!isValid(normalized)) {
+            throw new InvalidAliasException("Alias invalido");
+        }
+        if (ReservedPathValidator.isReserved(normalized)) {
+            throw new InvalidAliasException("Alias reservado");
+        }
     }
 }

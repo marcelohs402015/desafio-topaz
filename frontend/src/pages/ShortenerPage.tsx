@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { ShortUrlResult } from '../components/ShortUrlResult';
 import { UrlForm } from '../components/UrlForm';
 import { useAuth } from '../contexts/AuthContext';
-import { createShortUrl, deleteShortUrl } from '../services/urlApi';
+import { ApiError, createShortUrl, deleteShortUrl } from '../services/urlApi';
 import type { CreateUrlPayload, UrlResponse } from '../types/url';
 
 export function ShortenerPage() {
-  const { credentials } = useAuth();
+  const { credentials, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
@@ -22,6 +22,10 @@ export function ShortenerPage() {
       const response = await createShortUrl(payload, credentials);
       setResult(response);
     } catch (createError) {
+      if (createError instanceof ApiError && createError.status === 401) {
+        logout();
+        return;
+      }
       const message = createError instanceof Error ? createError.message : 'Erro ao criar URL';
       setError(message);
     } finally {
@@ -39,6 +43,10 @@ export function ShortenerPage() {
       await deleteShortUrl(id, credentials);
       setResult(null);
     } catch (deleteError) {
+      if (deleteError instanceof ApiError && deleteError.status === 401) {
+        logout();
+        return;
+      }
       const message = deleteError instanceof Error ? deleteError.message : 'Erro ao excluir URL';
       setError(message);
     } finally {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EditUrlModal } from '../components/EditUrlModal';
 import { useAuth } from '../contexts/AuthContext';
-import { deleteShortUrl, listShortUrls, updateShortUrl } from '../services/urlApi';
+import { ApiError, deleteShortUrl, listShortUrls, updateShortUrl } from '../services/urlApi';
 import type { UpdateUrlPayload, UrlResponse } from '../types/url';
 
 function formatDate(value: string): string {
@@ -10,7 +10,7 @@ function formatDate(value: string): string {
 }
 
 export function UrlListPage() {
-  const { credentials } = useAuth();
+  const { credentials, logout } = useAuth();
   const [urls, setUrls] = useState<UrlResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,13 +28,17 @@ export function UrlListPage() {
       const data = await listShortUrls(credentials);
       setUrls(data);
     } catch (loadError) {
+      if (loadError instanceof ApiError && loadError.status === 401) {
+        logout();
+        return;
+      }
       const message = loadError instanceof Error ? loadError.message : 'Erro ao carregar URLs';
       setError(message);
       setUrls([]);
     } finally {
       setLoading(false);
     }
-  }, [credentials]);
+  }, [credentials, logout]);
 
   useEffect(() => {
     loadUrls();
@@ -50,6 +54,10 @@ export function UrlListPage() {
       await deleteShortUrl(id, credentials);
       setUrls((current) => current.filter((item) => item.id !== id));
     } catch (deleteError) {
+      if (deleteError instanceof ApiError && deleteError.status === 401) {
+        logout();
+        return;
+      }
       const message = deleteError instanceof Error ? deleteError.message : 'Erro ao excluir URL';
       setError(message);
     } finally {
@@ -68,6 +76,10 @@ export function UrlListPage() {
       setUrls((current) => current.map((item) => (item.id === id ? updated : item)));
       setEditingUrl(null);
     } catch (saveError) {
+      if (saveError instanceof ApiError && saveError.status === 401) {
+        logout();
+        return;
+      }
       const message = saveError instanceof Error ? saveError.message : 'Erro ao atualizar URL';
       setError(message);
     } finally {

@@ -46,7 +46,11 @@ public class RedirectController {
         }
         String originalUrl = urlShortenerService.resolveOriginalUrl(shortCode);
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create(originalUrl));
+        try {
+            headers.setLocation(URI.create(originalUrl));
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 }

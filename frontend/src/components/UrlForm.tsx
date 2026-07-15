@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { isValidUrl } from '../services/auth';
+import { getAliasValidationError } from '../utils/validation';
 import type { CreateUrlPayload } from '../types/url';
 
 interface UrlFormProps {
@@ -18,6 +19,11 @@ export function UrlForm({ disabled, loading, onSubmit }: UrlFormProps) {
     const trimmedUrl = originalUrl.trim();
     if (!isValidUrl(trimmedUrl)) {
       setValidationError('Informe uma URL valida com http:// ou https://');
+      return;
+    }
+    const aliasError = getAliasValidationError(alias);
+    if (aliasError) {
+      setValidationError(aliasError);
       return;
     }
     setValidationError('');

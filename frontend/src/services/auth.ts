@@ -1,4 +1,7 @@
 import type { AuthCredentials } from '../types/url';
+import { isValidUrl } from '../utils/validation';
+
+export { isValidUrl };
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
@@ -27,14 +30,5 @@ export async function validateCredentials(credentials: AuthCredentials): Promise
       throw error;
     }
     throw new Error('Nao foi possivel conectar ao servidor. Verifique se o backend esta em execucao.');
-  }
-}
-
-export function isValidUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
   }
 }

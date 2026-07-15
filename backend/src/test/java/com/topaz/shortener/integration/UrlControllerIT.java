@@ -43,6 +43,20 @@ class UrlControllerIT {
     }
 
     @Test
+    void shouldRejectReservedAlias() throws Exception {
+        CreateUrlRequest request = new CreateUrlRequest();
+        request.setOriginalUrl("https://example.com");
+        request.setAlias("api");
+
+        mockMvc.perform(post("/api/urls")
+                        .with(httpBasic("admin", "admin"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Alias reservado"));
+    }
+
+    @Test
     void shouldListUpdateAndDeleteUrl() throws Exception {
         CreateUrlRequest request = new CreateUrlRequest();
         request.setOriginalUrl("https://google.com");

@@ -1,6 +1,7 @@
 package com.topaz.shortener.exception;
 
 import com.topaz.shortener.dto.response.ErrorResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -35,6 +36,11 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
         return buildResponse(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException exception) {
+        return buildResponse(HttpStatus.CONFLICT, "Alias ja esta em uso");
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message) {

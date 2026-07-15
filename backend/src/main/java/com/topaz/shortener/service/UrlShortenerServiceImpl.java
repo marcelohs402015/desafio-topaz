@@ -6,7 +6,6 @@ import com.topaz.shortener.dto.request.CreateUrlRequest;
 import com.topaz.shortener.dto.request.UpdateUrlRequest;
 import com.topaz.shortener.dto.response.UrlResponse;
 import com.topaz.shortener.exception.AliasAlreadyExistsException;
-import com.topaz.shortener.exception.InvalidAliasException;
 import com.topaz.shortener.exception.UrlNotFoundException;
 import com.topaz.shortener.port.UrlPersistencePort;
 import com.topaz.shortener.util.AliasValidator;
@@ -40,10 +39,8 @@ public class UrlShortenerServiceImpl implements UrlShortenerService {
         entity.setAccessCount(0L);
 
         if (StringUtils.hasText(request.getAlias())) {
+            AliasValidator.assertValidCustomAlias(request.getAlias());
             String normalizedAlias = AliasValidator.normalize(request.getAlias());
-            if (!AliasValidator.isValid(normalizedAlias)) {
-                throw new InvalidAliasException("Alias invalido");
-            }
             if (persistencePort.existsByShortCode(normalizedAlias)) {
                 throw new AliasAlreadyExistsException("Alias '" + normalizedAlias + "' ja esta em uso");
             }
@@ -69,17 +66,15 @@ public class UrlShortenerServiceImpl implements UrlShortenerService {
 
     @Override
     @Transactional
-    public UrlResponse update(Long id, UpdateUrlRequest request) {
+    public synchronized UrlResponse update(Long id, UpdateUrlRequest request) {
         UrlMapping mapping = persistencePort.findById(id)
                 .orElseThrow(() -> new UrlNotFoundException("URL nao encontrada"));
 
         mapping.setOriginalUrl(request.getOriginalUrl().trim());
 
         if (StringUtils.hasText(request.getAlias())) {
+            AliasValidator.assertValidCustomAlias(request.getAlias());
             String normalizedAlias = AliasValidator.normalize(request.getAlias());
-            if (!AliasValidator.isValid(normalizedAlias)) {
-                throw new InvalidAliasException("Alias invalido");
-            }
             if (persistencePort.existsByShortCodeAndIdNot(normalizedAlias, id)) {
                 throw new AliasAlreadyExistsException("Alias '" + normalizedAlias + "' ja esta em uso");
             }
@@ -101,11 +96,12 @@ public class UrlShortenerServiceImpl implements UrlShortenerService {
     @Override
     @Transactional
     public String resolveOriginalUrl(String shortCode) {
-        UrlMapping mapping = persistencePort.findByShortCode(shortCode)
+        if (persistencePort.incrementAccessCount(shortCode) == 0) {
+            throw new UrlNotFoundException("URL encurtada nao encontrada");
+        }
+        return persistencePort.findByShortCode(shortCode)
+                .map(UrlMapping::getOriginalUrl)
                 .orElseThrow(() -> new UrlNotFoundException("URL encurtada nao encontrada"));
-        mapping.setAccessCount(mapping.getAccessCount() + 1);
-        persistencePort.save(mapping);
-        return mapping.getOriginalUrl();
     }
 
     private UrlResponse toResponse(UrlMapping mapping) {
