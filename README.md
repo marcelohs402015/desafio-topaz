@@ -44,6 +44,7 @@ O desafio foi pensado para **~6 horas de esforço essencial**. Este repositório
 | Spring Security (Basic Auth) | **Extra** | Segurança da API administrativa |
 | Testes automatizados (backend + frontend) | **Extra opcional** | Pontua no desafio |
 | Docker Compose + CI/CD | **Extra opcional** | Pontua no desafio; Fase 3 |
+| Deploy e teste em WildFly 10 | **Fora do escopo** | WAR preparado (`jboss-web.xml`); **não será testado nesta entrega** |
 
 **Por que os extras não atrapalham:** o fluxo mínimo do desafio (digitar URL → gerar → copiar → redirect) funciona sem depender de login, lista ou Swagger. Login e CRUD são camadas administrativas sobre a mesma API; Swagger substitui pasta `docs/` separada.
 
@@ -108,9 +109,9 @@ Layout com menu lateral após login. Credenciais persistidas em `sessionStorage`
 
 ### Trade-off documentado
 
-O desafio sugere stack JAX-RS/CDI/JDBC no WildFly. Este projeto usa **Spring Boot empacotado como WAR** para WildFly 10, priorizando produtividade, testes e ecossistema Spring, mantendo compatibilidade com o application server exigido.
+O desafio sugere stack JAX-RS/CDI/JDBC no WildFly. Este projeto usa **Spring Boot empacotado como WAR** para WildFly 10, priorizando produtividade, testes e ecossistema Spring, mantendo compatibilidade estrutural com o application server exigido.
 
-**Validação em runtime:** o backend foi desenvolvido e testado com **Tomcat embedded** (`mvn spring-boot:run`) e via **Docker** (profile `docker`). O artefato WAR (`api-topaz.war`) e os arquivos de deploy (`jboss-web.xml`, `jboss-deployment-structure.xml`) estão preparados para WildFly 10, mas **o deploy em WildFly real não foi validado ao vivo** neste desafio — seria o próximo passo em ambiente com application server instalado.
+**Validação em runtime:** o backend foi desenvolvido e testado com **Tomcat embedded** (`mvn spring-boot:run`) e via **Docker** (profile `docker`). O artefato WAR (`api-topaz.war`) e os arquivos de deploy (`jboss-web.xml`, `jboss-deployment-structure.xml`) estão **preparados** para WildFly 10, mas **o deploy em WildFly real não faz parte desta entrega e não será executado** — decisão consciente para priorizar o fluxo funcional, testes automatizados e avaliação via Docker/dev local.
 
 ---
 
@@ -235,20 +236,24 @@ npm test
 
 ---
 
-## Deploy no WildFly 10
+## WildFly 10 (preparado, sem teste nesta entrega)
 
-O projeto gera um WAR pronto para deploy. Em desenvolvimento, a validação foi feita com Tomcat embedded; WildFly segue como alvo de produção conforme premissa do desafio.
+O projeto gera um **WAR** compatível com WildFly 10, mas **não instalei nem testei o deploy em WildFly** neste desafio. A validação funcional foi feita em Tomcat embedded e Docker.
 
-1. Build: `mvn clean package` em `backend/`
-2. Copie `backend/target/api-topaz.war` para `standalone/deployments/` do WildFly
-3. Context root: `/api-topaz` (definido em `jboss-web.xml`)
-4. Ajuste `app.base-url` para incluir o contexto, ex.: `https://servidor/api-topaz`
+O que existe no código para um deploy futuro:
 
-| Ambiente | Como roda | Validado? |
-|----------|-----------|-----------|
-| Dev local | `mvn spring-boot:run` (Tomcat embedded) | Sim |
-| Docker | `docker compose up` (Tomcat embedded, profile `docker`) | Sim |
-| WildFly 10 | Deploy do WAR em `standalone/deployments/` | Preparado, não testado ao vivo |
+1. Build: `mvn clean package` em `backend/` → `backend/target/api-topaz.war`
+2. Context root: `/api-topaz` (`jboss-web.xml`)
+3. Exclusões de logging JBoss (`jboss-deployment-structure.xml`)
+4. Em produção, ajustar `app.base-url` com o contexto, ex.: `https://servidor/api-topaz`
+
+### Ambientes validados
+
+| Ambiente | Como roda | Testado nesta entrega? |
+|----------|-----------|------------------------|
+| Dev local | `mvn spring-boot:run` (Tomcat embedded) | **Sim** |
+| Docker | `docker compose up` (Tomcat embedded, profile `docker`) | **Sim** |
+| WildFly 10 | Deploy do WAR em `standalone/deployments/` | **Não** — fora do escopo |
 
 ---
 
@@ -292,7 +297,7 @@ docker compose down
 
 Antes do push, rode `.\scripts\ci-local.ps1` para validar testes backend, frontend e build das imagens Docker localmente.
 
-> **Nota:** O WAR continua compatível com WildFly 10. O Docker usa Spring Boot embedded (profile `docker`) para facilitar a avaliação do desafio sem instalar WildFly localmente.
+> **Nota:** O WAR permanece compatível com WildFly 10 em termos de empacotamento. Nesta entrega, **não há teste em WildFly** — Docker e `spring-boot:run` cobrem a avaliação funcional sem exigir instalação do application server.
 
 ---
 
@@ -300,7 +305,7 @@ Antes do push, rode `.\scripts\ci-local.ps1` para validar testes backend, fronte
 
 | Área | Evolução |
 |------|----------|
-| **WildFly nativo** | Validar deploy do WAR em WildFly 10 real (hoje dev usa `spring-boot:run` e Docker usa embedded Tomcat) |
+| **WildFly nativo** | Instalar WildFly 10 e validar deploy do WAR ao vivo (fora do escopo desta entrega) |
 | **Stack JAX-RS** | Migrar controllers para JAX-RS + CDI puro, alinhando 100% à stack Topaz |
 | **Geração de código** | Trocar `synchronized` por sequência no banco ou Redis para escala horizontal |
 | **Rate limiting** | Proteger redirect público contra abuso |
