@@ -43,7 +43,7 @@ O desafio foi pensado para **~6 horas de esforço essencial**. Este repositório
 | Swagger OpenAPI 3.0 | **Extra** | Documentação viva da API; facilita avaliação |
 | Spring Security (Basic Auth) | **Extra** | Segurança da API administrativa |
 | Testes automatizados (backend + frontend) | **Extra opcional** | Pontua no desafio |
-| Docker Compose + CI/CD | **Extra opcional** | Pontua no desafio; Fase 3 |
+| Docker Compose + CI local | **Extra opcional** | Pontua no desafio; Fase 3 — script `ci-local.ps1`, sem GitHub Actions |
 | Deploy e teste em WildFly 10 | **Fora do escopo** | WAR preparado (`jboss-web.xml`); **não será testado nesta entrega** |
 
 **Por que os extras não atrapalham:** o fluxo mínimo do desafio (digitar URL → gerar → copiar → redirect) funciona sem depender de login, lista ou Swagger. Login e CRUD são camadas administrativas sobre a mesma API; Swagger substitui pasta `docs/` separada.
@@ -308,13 +308,21 @@ docker compose up --build
 docker compose down
 ```
 
-### CI local (replica o pipeline antes do push)
+### CI local (validação antes do push)
+
+Nesta entrega **não há GitHub Actions** (`.github/workflows/`). A validação automatizada é feita **localmente** com o script abaixo — mesma ideia de um pipeline (testar → buildar), mas disparado manualmente por você, não pelo GitHub em cada push.
 
 ```powershell
 .\scripts\ci-local.ps1
 ```
 
-Antes do push, rode `.\scripts\ci-local.ps1` para validar testes backend, frontend e build das imagens Docker localmente.
+O script executa, em sequência:
+
+1. **Backend** — `mvn clean verify` (testes unitários + integração)
+2. **Frontend** — `npm ci`, `npm test`, `npm run build`
+3. **Docker** — `docker compose build` (valida imagens; não sobe os containers)
+
+Rode antes de cada `git push` para garantir que o repositório está íntegro. Para subir a aplicação completa, use `docker compose up --build` (seção acima).
 
 > **Nota:** O WAR permanece compatível com WildFly 10 em termos de empacotamento. Nesta entrega, **não há teste em WildFly** — Docker e `spring-boot:run` cobrem a avaliação funcional sem exigir instalação do application server.
 
@@ -324,6 +332,7 @@ Antes do push, rode `.\scripts\ci-local.ps1` para validar testes backend, fronte
 
 | Área | Evolução |
 |------|----------|
+| **GitHub Actions** | Workflow em `.github/workflows/ci.yml` disparado em push/PR (fora do escopo desta entrega; hoje só `ci-local.ps1`) |
 | **WildFly nativo** | Instalar WildFly 10 e validar deploy do WAR ao vivo (fora do escopo desta entrega) |
 | **Stack JAX-RS** | Migrar controllers para JAX-RS + CDI puro, alinhando 100% à stack Topaz |
 | **Geração de código** | Trocar `synchronized` por sequência no banco ou Redis para escala horizontal |
