@@ -1,4 +1,4 @@
-package com.topaz.shortener.service;
+package com.topaz.shortener.service.impl;
 
 import com.topaz.shortener.config.AppProperties;
 import com.topaz.shortener.domain.UrlMapping;
@@ -8,6 +8,7 @@ import com.topaz.shortener.dto.response.UrlResponse;
 import com.topaz.shortener.exception.AliasAlreadyExistsException;
 import com.topaz.shortener.exception.UrlNotFoundException;
 import com.topaz.shortener.port.UrlPersistencePort;
+import com.topaz.shortener.service.UrlShortenerService;
 import com.topaz.shortener.util.AliasValidator;
 import com.topaz.shortener.util.Base62Encoder;
 import org.springframework.stereotype.Service;

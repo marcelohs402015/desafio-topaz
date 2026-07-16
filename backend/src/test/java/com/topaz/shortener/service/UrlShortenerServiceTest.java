@@ -8,6 +8,7 @@ import com.topaz.shortener.dto.response.UrlResponse;
 import com.topaz.shortener.exception.AliasAlreadyExistsException;
 import com.topaz.shortener.exception.InvalidAliasException;
 import com.topaz.shortener.port.UrlPersistencePort;
+import com.topaz.shortener.service.impl.UrlShortenerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

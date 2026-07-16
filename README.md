@@ -61,7 +61,8 @@ api-topaz/
 ├── backend/                 # API REST — Spring Boot 2.7 (WAR para WildFly 10)
 │   └── src/main/java/com/topaz/shortener/
 │       ├── controller/        # UrlController (CRUD) + RedirectController (público)
-│       ├── service/           # Regras de negócio (create sincronizado, Base62, alias)
+│       ├── service/           # UrlShortenerService (contrato)
+│       │   └── impl/          # UrlShortenerServiceImpl (create sincronizado, Base62, alias)
 │       ├── port/              # UrlPersistencePort (contrato de persistência)
 │       ├── infrastructure/    # UrlPersistenceJpaAdapter + JpaRepository
 │       ├── domain/            # UrlMapping (entidade JPA)
